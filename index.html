@@ -11,17 +11,42 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fff7ed; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f3f4f6; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            -webkit-tap-highlight-color: transparent; 
+        }
         .font-mono { font-family: 'Space Mono', monospace; }
         
-        /* Mobile Frame */
+        /* Mobile Frame - ROUND SCREEN */
         .mobile-frame {
-            max-width: 480px; 
-            margin: 0 auto; 
-            background: #fff7ed; /* Orange-50 */
-            min-height: 100vh;
+            width: 100%;
+            max-width: 420px; 
+            height: 90vh;
+            max-height: 850px;
+            background: #fff7ed;
             position: relative;
-            box-shadow: 0 0 50px rgba(0,0,0,0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 2.5rem; 
+            overflow: hidden; 
+            border: 8px solid #fff; 
+        }
+
+        @media (max-width: 480px) {
+            body { background-color: #fff7ed; display: block; }
+            .mobile-frame {
+                max-width: 100%;
+                height: 100vh;
+                max-height: none;
+                border-radius: 0;
+                border: none;
+                box-shadow: none;
+            }
         }
 
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -39,16 +64,6 @@
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         .print-anim { animation: printReceipt 0.8s ease-out forwards; }
 
-        /* Custom UI Elements */
-        .zigzag {
-            background: linear-gradient(-45deg, transparent 8px, #fff 8px) 0 8px,
-                        linear-gradient(45deg, transparent 8px, #fff 8px) 0 8px;
-            background-repeat: repeat-x;
-            background-size: 16px 16px;
-            height: 16px;
-            width: 100%;
-        }
-        
         .zigzag-orange {
             background: linear-gradient(-45deg, transparent 8px, #f97316 8px) 0 8px,
                         linear-gradient(45deg, transparent 8px, #f97316 8px) 0 8px;
@@ -58,7 +73,15 @@
             width: 100%;
         }
 
-        /* Emoji Background Pattern */
+        .zigzag {
+             background: linear-gradient(-45deg, transparent 8px, #fff 8px) 0 8px,
+                        linear-gradient(45deg, transparent 8px, #fff 8px) 0 8px;
+            background-repeat: repeat-x;
+            background-size: 16px 16px;
+            height: 16px;
+            width: 100%;
+        }
+
         .emoji-bg {
             background-image: radial-gradient(#fdba74 1px, transparent 1px);
             background-size: 20px 20px;
@@ -69,17 +92,27 @@
             backdrop-filter: blur(10px);
         }
 
-        /* Explore Active State */
         .explore-btn.active {
-            background-color: #ffedd5; /* orange-100 */
-            border-color: #f97316; /* orange-500 */
+            background-color: #ffedd5;
+            border-color: #f97316;
             transform: scale(0.95);
+        }
+
+        .toast-center {
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            margin-top: 0 !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+            border-radius: 16px !important;
+            font-weight: bold !important;
+            text-align: center !important;
+            padding: 16px 24px !important;
         }
     </style>
 </head>
 <body>
 
-<div class="mobile-frame pb-32 overflow-hidden bg-orange-50 emoji-bg">
+<div class="mobile-frame pb-32 overflow-hidden bg-orange-50 emoji-bg" id="app-frame">
 
     <div id="splash-screen" class="absolute inset-0 z-[100] bg-gradient-to-br from-orange-600 to-amber-500 flex flex-col items-center justify-center text-white">
         <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-4 shadow-xl animate-bounce">
@@ -89,8 +122,8 @@
         <p class="text-sm font-medium tracking-[0.3em] mt-2 uppercase opacity-90">Delicious Moments</p>
     </div>
 
-    <div id="login-modal" class="fixed inset-0 z-[90] bg-black/60 hidden items-end justify-center backdrop-blur-sm">
-        <div class="bg-white w-full max-w-[480px] p-8 rounded-t-[2.5rem] shadow-2xl slide-up relative overflow-hidden">
+    <div id="login-modal" class="absolute inset-0 z-[90] bg-black/60 hidden items-end justify-center backdrop-blur-sm">
+        <div class="bg-white w-full h-auto p-8 rounded-t-[2.5rem] shadow-2xl slide-up relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 to-red-500"></div>
             <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4 mx-auto text-3xl">👋</div>
             <h2 class="text-3xl font-extrabold text-gray-900 mb-2 text-center">Let's Eat!</h2>
@@ -111,8 +144,8 @@
         </div>
     </div>
 
-    <div id="notif-modal" class="fixed inset-0 z-[80] bg-black/60 hidden items-start justify-center backdrop-blur-sm pt-20" onclick="toggleNotif()">
-        <div class="bg-white w-[90%] max-w-[440px] rounded-2xl shadow-2xl p-5 m-auto relative" onclick="event.stopPropagation()">
+    <div id="notif-modal" class="absolute inset-0 z-[80] bg-black/60 hidden items-start justify-center backdrop-blur-sm pt-20" onclick="toggleNotif()">
+        <div class="bg-white w-[90%] max-w-[380px] rounded-2xl shadow-2xl p-5 m-auto relative" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
                 <h3 class="font-bold text-lg">🔔 Recent Orders</h3>
                 <button onclick="toggleNotif()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><i class="fas fa-times"></i></button>
@@ -124,7 +157,7 @@
         </div>
     </div>
 
-    <div id="main-app" class="opacity-0 transition-opacity duration-500">
+    <div id="main-app" class="h-full overflow-y-auto hide-scrollbar opacity-0 transition-opacity duration-500 pb-24">
         
         <header class="sticky top-0 z-40 glass-header border-b border-orange-100/50 pb-3">
             <div class="px-5 py-4 flex justify-between items-center">
@@ -149,7 +182,7 @@
                     <input type="text" oninput="filterMenu(this.value)" placeholder="Search 'Pizza'..." class="w-full bg-white border border-orange-100 rounded-2xl pl-11 pr-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/20 shadow-sm transition-all">
                 </div>
             </div>
-            </header>
+        </header>
 
         <div class="px-5 mt-4">
             <div class="flex justify-between items-end mb-3">
@@ -199,12 +232,28 @@
 
         <div class="px-5 mt-4">
             <h3 class="font-bold text-gray-800 text-lg mb-4 flex items-center gap-2">Items <span class="text-[10px] bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full" id="menu-count">0 Items</span></h3>
-            <div id="menu-container" class="grid grid-cols-1 gap-5 pb-8"></div>
+            <div id="menu-container" class="grid grid-cols-1 gap-5"></div>
+            
+            <div class="pb-10 pt-10 text-center">
+                <div class="flex justify-center gap-5 text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-4 border-t border-orange-100/50 pt-6 mx-10">
+                    <span class="cursor-pointer hover:text-orange-600 transition-colors">Policy</span>
+                    <span class="text-gray-300">•</span>
+                    <span class="cursor-pointer hover:text-orange-600 transition-colors">Contact</span>
+                    <span class="text-gray-300">•</span>
+                    <span class="cursor-pointer hover:text-orange-600 transition-colors">Help</span>
+                </div>
+                <div class="flex items-center justify-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
+                    <span class="text-[10px] text-gray-400 font-medium">Powered by</span>
+                    <span class="font-black text-xs text-gray-700 tracking-tight flex items-center gap-0.5">
+                        Automation<span class="text-orange-600 text-sm">X</span>
+                    </span>
+                </div>
+            </div>
         </div>
 
     </div>
 
-    <div id="cart-bar" onclick="openCheckout()" class="fixed bottom-6 left-5 right-5 max-w-[440px] mx-auto bg-gradient-to-r from-orange-600 to-red-600 text-white p-4 rounded-2xl shadow-2xl shadow-orange-400/50 flex justify-between items-center z-40 transform translate-y-40 transition-transform duration-500 cursor-pointer ring-4 ring-white/50">
+    <div id="cart-bar" onclick="openCheckout()" class="absolute bottom-6 left-5 right-5 max-w-[380px] mx-auto bg-gradient-to-r from-orange-600 to-red-600 text-white p-4 rounded-2xl shadow-2xl shadow-orange-400/50 flex justify-between items-center z-40 transform translate-y-40 transition-transform duration-500 cursor-pointer ring-4 ring-white/50">
         <div class="flex items-center gap-4">
             <div class="bg-white/20 backdrop-blur-md w-10 h-10 rounded-full flex items-center justify-center font-bold text-white border border-white/30" id="cart-count">0</div>
             <div class="flex flex-col">
@@ -217,9 +266,9 @@
         </div>
     </div>
 
-    <div id="checkout-sheet" class="fixed inset-0 z-[50] hidden">
+    <div id="checkout-sheet" class="absolute inset-0 z-[50] hidden">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity opacity-0" id="checkout-bg" onclick="closeCheckout()"></div>
-        <div class="absolute bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-orange-50 rounded-t-[2rem] h-[92vh] flex flex-col transform translate-y-full transition-transform duration-300 border-t-8 border-orange-500" id="checkout-panel">
+        <div class="absolute bottom-0 left-0 right-0 w-full bg-orange-50 rounded-t-[2rem] h-[92%] flex flex-col transform translate-y-full transition-transform duration-300 border-t-8 border-orange-500" id="checkout-panel">
             
             <div class="bg-white px-6 py-4 rounded-t-[1.5rem] shadow-sm flex justify-between items-center z-10 border-b border-orange-100">
                 <h2 class="text-xl font-bold flex items-center gap-2 text-orange-900">🍽️ Your Tray</h2>
@@ -280,8 +329,8 @@
                     <h3 class="font-bold text-gray-800 mb-3 pt-2">Bill Details</h3>
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between text-gray-600"><span>Item Total</span><span>₹<span id="summary-total">0.00</span></span></div>
-                        <div class="flex justify-between text-gray-600"><span>Platform Fee</span><span>₹0.98</span></div>
-                        <div class="flex justify-between text-gray-600"><span>Tax (5%)</span><span>₹<span id="summary-tax">0.00</span></span></div>
+                        <div class="flex justify-between text-gray-500 text-[11px]"><span>Platform Fee</span><span>₹0.98</span></div>
+                        <div class="flex justify-between text-gray-500 text-[11px]"><span>Tax (5%)</span><span>₹<span id="summary-tax">0.00</span></span></div>
                         <div id="donation-row" class="flex justify-between text-pink-600 hidden font-bold"><span>Donation ❤️</span><span>₹<span id="summary-donation">0</span></span></div>
                         <div id="discount-row" class="flex justify-between text-green-600 font-medium hidden"><span>Discount</span><span>- ₹<span id="summary-discount">0</span></span></div>
                         <div class="flex justify-between text-xl font-extrabold text-gray-900 mt-3 pt-3 border-t border-dashed border-gray-300">
@@ -305,56 +354,82 @@
         </div>
     </div>
 
-    <div id="payment-modal" class="fixed inset-0 z-[60] hidden">
+    <div id="payment-modal" class="absolute inset-0 z-[60] hidden">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closePaymentModal()"></div>
-        <div class="absolute bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-orange-50 rounded-t-[2rem] p-6 transform translate-y-full transition-transform duration-300" id="payment-panel">
+        <div class="absolute bottom-0 left-0 right-0 w-full bg-orange-50 rounded-t-[2rem] p-6 transform translate-y-full transition-transform duration-300" id="payment-panel">
             <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6"></div>
-            <h2 class="text-2xl font-bold mb-1 text-gray-800">Select Payment</h2>
-            <p class="text-sm text-gray-500 mb-6">Completing payment of <strong class="text-orange-600 text-lg">₹<span id="pay-modal-amt">0.00</span></strong></p>
             
-            <div class="space-y-4">
-                <div class="grid grid-cols-4 gap-3 mb-4">
-                    <button onclick="payViaUPI('phonepe')" class="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-gray-100 hover:border-purple-300 hover:bg-purple-50 transition-all shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center"><i class="fas fa-p text-purple-600 font-bold text-lg"></i></div>
-                        <span class="text-[10px] font-bold text-gray-600">PhonePe</span>
-                    </button>
-                    <button onclick="payViaUPI('gpay')" class="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"><i class="fab fa-google text-blue-600 font-bold text-lg"></i></div>
-                        <span class="text-[10px] font-bold text-gray-600">GPay</span>
-                    </button>
-                     <button onclick="payViaUPI('paytm')" class="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-gray-100 hover:border-cyan-300 hover:bg-cyan-50 transition-all shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center"><i class="fas fa-wallet text-cyan-600 font-bold text-lg"></i></div>
-                        <span class="text-[10px] font-bold text-gray-600">Paytm</span>
-                    </button>
-                     <button onclick="payViaUPI('other')" class="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-gray-100 hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center"><i class="fas fa-qrcode text-orange-600 font-bold text-lg"></i></div>
-                        <span class="text-[10px] font-bold text-gray-600">UPI ID</span>
-                    </button>
-                </div>
-
-                <div class="relative flex py-2 items-center">
-                    <div class="flex-grow border-t border-gray-300 border-dashed"></div>
-                    <span class="flex-shrink mx-4 text-gray-400 text-xs font-bold uppercase">Or pay cash</span>
-                    <div class="flex-grow border-t border-gray-300 border-dashed"></div>
-                </div>
-
-                <button onclick="processOrder('Cash')" class="w-full bg-white border border-green-200 p-4 rounded-2xl flex items-center justify-between hover:bg-green-50 transition-colors group shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white text-xl shadow-green-200 shadow-lg"><i class="fas fa-money-bill-wave"></i></div>
-                        <div class="text-left">
-                            <h3 class="font-bold text-green-900 group-hover:text-green-800">Cash on Counter</h3>
-                            <p class="text-xs text-green-700">Pay after eating</p>
-                        </div>
+            <div id="payment-default-view">
+                <h2 class="text-2xl font-bold mb-1 text-gray-800">Select Payment</h2>
+                <p class="text-sm text-gray-500 mb-6">Completing payment of <strong class="text-orange-600 text-lg">₹<span id="pay-modal-amt">0.00</span></strong></p>
+                
+                <div class="space-y-4">
+                    <div class="grid grid-cols-4 gap-3 mb-4">
+                        <button onclick="triggerAppPayment('PhonePe')" class="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-gray-100 hover:border-purple-300 hover:bg-purple-50 transition-all shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center"><i class="fas fa-p text-purple-600 font-bold text-lg"></i></div>
+                            <span class="text-[10px] font-bold text-gray-600">PhonePe</span>
+                        </button>
+                        <button onclick="triggerAppPayment('GPay')" class="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"><i class="fab fa-google text-blue-600 font-bold text-lg"></i></div>
+                            <span class="text-[10px] font-bold text-gray-600">GPay</span>
+                        </button>
+                         <button onclick="triggerAppPayment('Paytm')" class="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-gray-100 hover:border-cyan-300 hover:bg-cyan-50 transition-all shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center"><i class="fas fa-wallet text-cyan-600 font-bold text-lg"></i></div>
+                            <span class="text-[10px] font-bold text-gray-600">Paytm</span>
+                        </button>
+                         <button onclick="showUPIInput()" class="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-gray-100 hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center"><i class="fas fa-qrcode text-orange-600 font-bold text-lg"></i></div>
+                            <span class="text-[10px] font-bold text-gray-600">UPI ID</span>
+                        </button>
                     </div>
-                    <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"><i class="fas fa-chevron-right text-gray-600"></i></div>
-                </button>
+
+                    <div class="relative flex py-2 items-center">
+                        <div class="flex-grow border-t border-gray-300 border-dashed"></div>
+                        <span class="flex-shrink mx-4 text-gray-400 text-xs font-bold uppercase">Or pay cash</span>
+                        <div class="flex-grow border-t border-gray-300 border-dashed"></div>
+                    </div>
+
+                    <button onclick="processOrder('Cash')" class="w-full bg-white border border-green-200 p-4 rounded-2xl flex items-center justify-between hover:bg-green-50 transition-colors group shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white text-xl shadow-green-200 shadow-lg"><i class="fas fa-money-bill-wave"></i></div>
+                            <div class="text-left">
+                                <h3 class="font-bold text-green-900 group-hover:text-green-800">Cash on Counter</h3>
+                                <p class="text-xs text-green-700">Pay after eating</p>
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"><i class="fas fa-chevron-right text-gray-600"></i></div>
+                    </button>
+                </div>
             </div>
+
+            <div id="payment-input-view" class="hidden h-full">
+                 <div class="flex items-center gap-3 mb-6">
+                    <button onclick="hideUPIInput()" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+                    <h2 class="text-xl font-bold text-gray-800">Enter UPI ID</h2>
+                 </div>
+                 
+                 <div class="bg-white p-4 rounded-2xl border border-orange-200 shadow-sm mb-4">
+                     <label class="text-xs font-bold text-gray-400 uppercase ml-1">Customer VPA / UPI ID</label>
+                     <input type="text" id="manual-upi-id" class="w-full mt-1 p-2 text-lg font-bold border-b-2 border-orange-100 focus:border-orange-500 outline-none text-gray-800 placeholder-gray-300" placeholder="user@upi">
+                     <p class="text-[10px] text-gray-400 mt-2"><i class="fas fa-lock"></i> Secure Payment Request</p>
+                 </div>
+
+                 <button onclick="simulatePaymentRequest()" id="btn-request-pay" class="w-full bg-gray-900 text-white font-bold text-lg py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                    <span>Verify & Pay</span> <i class="fas fa-paper-plane"></i>
+                 </button>
+            </div>
+
+             <div id="payment-loader-view" class="hidden h-full flex flex-col items-center justify-center py-10">
+                <div class="w-16 h-16 rounded-full border-4 border-orange-200 border-t-orange-600 animate-spin mb-4"></div>
+                <h3 class="text-xl font-bold text-gray-800">Requesting Payment...</h3>
+                <p class="text-sm text-gray-500 text-center mt-2 px-8">Please check your UPI App to approve the payment.</p>
+            </div>
+
         </div>
     </div>
 
-    <div id="success-screen" class="fixed inset-0 z-[100] bg-gray-900 hidden flex-col items-center justify-center p-4">
-        
-        <div class="bg-white w-full max-w-sm rounded-none shadow-2xl relative print-anim overflow-hidden">
+    <div id="success-screen" class="absolute inset-0 z-[100] bg-gray-900 hidden flex-col items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm shadow-2xl relative print-anim overflow-hidden rounded-[2.5rem]">
             <div id="success-header" class="bg-orange-50 p-8 text-center border-b border-orange-100 relative">
                 <div class="zigzag-orange absolute bottom-0 left-0 w-full opacity-50"></div>
                 <div id="success-icon" class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-3xl shadow-xl shadow-green-200">
@@ -458,7 +533,7 @@
             document.getElementById('login-modal').classList.add('hidden');
             initUI();
         } else {
-            Toastify({ text: "Please enter details", style: { background: "#EF4444" } }).showToast();
+            Toastify({ text: "Please enter details", className: "toast-center", style: { background: "#EF4444" } }).showToast();
         }
     };
 
@@ -470,9 +545,8 @@
         updateCartBar(); 
     }
 
-    // --- DATA LOADING & UPDATED CATEGORIES ---
+    // --- DATA LOADING ---
     function loadData() {
-        // Added 'category' field to each item to match Explore buttons
         menuData = [
             { id: '1', name: 'Paneer Tikka Pizza', price: 289, type: 'Veg', category: 'Pizza', desc: 'Spiced paneer, onion, paprika', img: 'https://source.unsplash.com/400x400/?pizza,veg', rating: 4.8 },
             { id: '2', name: 'Chicken Dominator', price: 349, type: 'Non-Veg', category: 'Pizza', desc: 'Loaded with grilled chicken', img: 'https://source.unsplash.com/400x400/?pizza,chicken', rating: 4.9 },
@@ -498,7 +572,6 @@
         renderOffers();
     }
 
-    // --- BANNERS LOGIC (Updated with Branding) ---
     function initBanners() {
         const container = document.getElementById('banner-container');
         container.innerHTML = offerList.map(offer => `
@@ -507,7 +580,6 @@
                     <i class="fas fa-utensils text-[8px]"></i>
                     <span class="text-[8px] font-bold tracking-wider uppercase">Wow Cafe</span>
                 </div>
-
                 <div class="relative z-10">
                     <span class="bg-white/20 px-2 py-0.5 rounded text-[9px] font-bold tracking-wider">PROMO</span>
                     <h3 class="text-xl font-bold mt-1">${offer.title}</h3>
@@ -531,20 +603,14 @@
         }, 3500);
     }
 
-    // --- EXPLORE & FILTER LOGIC (NEW) ---
+    // --- EXPLORE & FILTER LOGIC ---
     window.filterByExplore = (cat) => {
         currentCategory = cat;
         
-        // Remove active class from all
         document.querySelectorAll('.explore-btn').forEach(btn => {
             btn.classList.remove('active');
-            // Reset background for non-active
-            if(btn.id !== 'exp-all') {
-                const color = btn.id.split('-')[1]; // e.g. 'pizza' -> 'red' logic handled in class already via hover/bg
-            }
         });
 
-        // Add active class to specific ID
         const activeBtn = document.getElementById(`exp-${cat.toLowerCase()}`);
         if(activeBtn) activeBtn.classList.add('active');
 
@@ -556,7 +622,6 @@
         }
     }
 
-    // --- MENU RENDERER ---
     function renderMenu(items) {
         const div = document.getElementById('menu-container');
         div.innerHTML = '';
@@ -604,7 +669,6 @@
         });
     }
 
-    // --- LOGIC ---
     window.updateQty = (id, change) => {
         if(navigator.vibrate) navigator.vibrate(40);
         const item = menuData.find(i => i.id === id);
@@ -642,7 +706,7 @@
         }
     }
 
-    // --- NOTIFICATION & HISTORY LOGIC ---
+    // --- NOTIFICATION & HISTORY ---
     window.toggleNotif = () => {
         const modal = document.getElementById('notif-modal');
         const list = document.getElementById('recent-orders-list');
@@ -669,25 +733,21 @@
     window.openPastReceipt = (orderId) => {
         const order = recentOrders.find(o => o.id === orderId);
         if(!order) return;
-
         isViewingHistory = true; 
         toggleNotif(); 
-
         document.getElementById('success-title').innerText = "Order Receipt";
         document.getElementById('payment-status-text').innerText = "Paid on " + order.date;
         document.getElementById('final-amt').innerText = order.amount;
         document.getElementById('txn-id').innerText = order.id;
-        // Updated to show Date & Time in history view too
         document.getElementById('receipt-time').innerText = `${order.date} | ${order.time}`;
         document.getElementById('receipt-type').innerText = order.type || "Dine-in";
         document.getElementById('receipt-customer').innerText = user.name;
         document.getElementById('btn-home').innerText = "Close Receipt"; 
-        
         document.getElementById('success-screen').classList.remove('hidden');
         document.getElementById('success-screen').classList.add('flex');
     }
 
-    // --- CHECKOUT & BILLING ---
+    // --- CHECKOUT FLOW ---
     window.openCheckout = () => {
         document.getElementById('customer-info-bill').innerText = user.name;
         document.getElementById('receipt-customer').innerText = user.name;
@@ -738,20 +798,17 @@
                      <span class="text-gray-800 font-bold block">${i.name}</span>
                      <span class="text-xs text-gray-400">₹${i.price} / item</span>
                 </div>
-                
-                <div class="flex items-center bg-gray-50 rounded-lg p-1 gap-3 mr-4 border border-gray-200">
+                <div class="flex items-center bg-gray-50 rounded-lg p-1 gap-3 border border-gray-200">
                     <button onclick="updateQty('${i.id}', -1)" class="w-5 h-5 flex items-center justify-center text-gray-500 bg-white rounded shadow-sm"><i class="fas fa-minus text-[8px]"></i></button>
                     <span class="text-xs font-bold text-gray-800 w-2 text-center">${i.qty}</span>
                     <button onclick="updateQty('${i.id}', 1)" class="w-5 h-5 flex items-center justify-center text-green-600 bg-white rounded shadow-sm"><i class="fas fa-plus text-[8px]"></i></button>
                 </div>
-
-                <span class="font-bold text-gray-800 w-12 text-right">₹${i.price * i.qty}</span>
             </div>
         `).join('');
         calculateTotals();
     }
 
-    // --- DONATION LOGIC ---
+    // --- DONATION ---
     window.toggleDonation = () => {
         const chk = document.getElementById('donate-check');
         const opts = document.getElementById('donation-options');
@@ -761,7 +818,7 @@
             opts.classList.remove('opacity-50', 'pointer-events-none');
             row.classList.remove('hidden');
             if(donationAmount === 0) setDonation(5);
-            Toastify({ text: "Thank You! You are kind ❤️", gravity: "bottom", style: { background: "#EC4899" } }).showToast();
+            Toastify({ text: "Thank You! You are kind ❤️", className: "toast-center", duration: 2000, style: { background: "#EC4899" } }).showToast();
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.8 }, colors: ['#EC4899', '#ffffff'] });
         } else {
             opts.classList.add('opacity-50', 'pointer-events-none');
@@ -776,7 +833,6 @@
     window.setDonation = (amt) => {
         if(!document.getElementById('donate-check').checked) return;
         donationAmount = parseInt(amt) || 0;
-        
         document.querySelectorAll('.tip-btn').forEach(b => {
             if(b.innerText.includes(amt) && !document.getElementById('custom-tip').value) {
                 b.classList.add('bg-pink-100', 'border-pink-500', 'text-pink-800');
@@ -784,15 +840,14 @@
                 b.classList.remove('bg-pink-100', 'border-pink-500', 'text-pink-800');
             }
         });
-
         document.getElementById('summary-donation').innerText = donationAmount;
         calculateTotals();
     };
 
+    // --- OFFERS ---
     function renderOffers() {
         const container = document.getElementById('offers-dropdown');
         container.innerHTML = '';
-        
         offerList.forEach((offer, index) => {
             const isSelected = selectedOffer === index;
             container.innerHTML += `
@@ -815,17 +870,16 @@
     window.applyOffer = (index) => {
         const total = cart.reduce((a,b) => a + (b.price * b.qty), 0) || 0;
         const offer = offerList[index];
-
         if(selectedOffer === index) {
             selectedOffer = null; 
-            Toastify({text: "Coupon Removed", gravity: "bottom", style: {background: "#374151"}}).showToast();
+            Toastify({text: "Coupon Removed", className: "toast-center", style: {background: "#374151"}}).showToast();
         } else {
             if(total >= offer.minAmt) {
                 selectedOffer = index;
-                Toastify({text: "Coupon Applied! 🥳", gravity: "bottom", style: {background: "#10B981"}}).showToast();
+                Toastify({text: "Coupon Applied! 🥳", className: "toast-center", style: {background: "#10B981"}}).showToast();
                 toggleOffers();
             } else {
-                Toastify({text: `Add items worth ₹${offer.minAmt - total} more`, gravity: "bottom", style: {background: "#F59E0B"}}).showToast();
+                Toastify({text: `Add items worth ₹${offer.minAmt - total} more`, className: "toast-center", style: {background: "#F59E0B"}}).showToast();
                 return;
             }
         }
@@ -835,20 +889,15 @@
     function calculateTotals() {
         let total = cart.reduce((a,b) => a + (b.price * b.qty), 0) || 0;
         let discount = 0;
-
         if(selectedOffer !== null) {
             const offer = offerList[selectedOffer];
             if(total >= offer.minAmt) {
-                if(offer.discountPercent > 0) {
-                    discount = Math.round(total * (offer.discountPercent / 100));
-                } else {
-                    discount = offer.discountFlat;
-                }
+                if(offer.discountPercent > 0) discount = Math.round(total * (offer.discountPercent / 100));
+                else discount = offer.discountFlat;
             } else {
                 selectedOffer = null;
             }
         }
-
         const tax = (total - discount) * 0.05;
         const grand = (total - discount) + tax + platformFee + donationAmount;
 
@@ -867,9 +916,25 @@
         }
     }
 
-    // --- PAYMENT FLOW ---
+    // --- NEW PAYMENT FLOW ---
+    
+    // Switch between Icons view and Input View
+    window.showUPIInput = () => {
+        document.getElementById('payment-default-view').classList.add('hidden');
+        document.getElementById('payment-input-view').classList.remove('hidden');
+    }
+
+    window.hideUPIInput = () => {
+        document.getElementById('payment-input-view').classList.add('hidden');
+        document.getElementById('payment-default-view').classList.remove('hidden');
+    }
+
     window.openPaymentModal = () => {
         document.getElementById('payment-modal').classList.remove('hidden');
+        // Reset Views
+        document.getElementById('payment-default-view').classList.remove('hidden');
+        document.getElementById('payment-input-view').classList.add('hidden');
+        document.getElementById('payment-loader-view').classList.add('hidden');
         setTimeout(() => document.getElementById('payment-panel').classList.remove('translate-y-full'), 10);
     };
 
@@ -878,31 +943,45 @@
         setTimeout(() => document.getElementById('payment-modal').classList.add('hidden'), 300);
     };
 
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && isWaitingForPayment) {
-            isWaitingForPayment = false;
-            processOrder('UPI'); 
-        }
-    });
-
-    window.payViaUPI = (app) => {
+    // For App Buttons (PhonePe, etc) - Try Deep Link but Fallback to Simulation
+    window.triggerAppPayment = (app) => {
         const amt = document.getElementById('summary-grand').innerText;
         const oid = Math.floor(Math.random() * 90000 + 10000);
         const note = `Order-${oid}`;
         
         let upiLink = `upi://pay?pa=${UPI_ID}&pn=${MERCHANT_NAME}&am=${amt}&cu=INR&tn=${note}`;
-        if (app === 'phonepe') upiLink = `phonepe://pay?pa=${UPI_ID}&pn=${MERCHANT_NAME}&am=${amt}&cu=INR&tn=${note}`;
-        else if (app === 'gpay') upiLink = `tez://upi/pay?pa=${UPI_ID}&pn=${MERCHANT_NAME}&am=${amt}&cu=INR&tn=${note}`;
-        else if (app === 'paytm') upiLink = `paytmmp://pay?pa=${UPI_ID}&pn=${MERCHANT_NAME}&am=${amt}&cu=INR&tn=${note}`;
+        if (app === 'PhonePe') upiLink = `phonepe://pay?pa=${UPI_ID}&pn=${MERCHANT_NAME}&am=${amt}&cu=INR&tn=${note}`;
+        else if (app === 'GPay') upiLink = `tez://upi/pay?pa=${UPI_ID}&pn=${MERCHANT_NAME}&am=${amt}&cu=INR&tn=${note}`;
+        else if (app === 'Paytm') upiLink = `paytmmp://pay?pa=${UPI_ID}&pn=${MERCHANT_NAME}&am=${amt}&cu=INR&tn=${note}`;
 
-        isWaitingForPayment = true;
-        window.location.href = upiLink;
+        // Try to open app
+        try {
+            window.location.href = upiLink;
+        } catch(e) {
+            console.log("Deep link failed or cancelled");
+        }
+
+        // Show "Requesting" Loader regardless, to handle Desktop/Error flow gracefully
+        simulatePaymentRequest();
+    };
+
+    // Manual UPI ID Verification
+    window.simulatePaymentRequest = () => {
+        const manualId = document.getElementById('manual-upi-id').value;
+        // If in manual view and empty
+        if(!document.getElementById('payment-input-view').classList.contains('hidden') && !manualId) {
+             Toastify({text: "Please enter UPI ID", className: "toast-center", style: {background: "#EF4444"}}).showToast();
+             return;
+        }
+
+        document.getElementById('payment-default-view').classList.add('hidden');
+        document.getElementById('payment-input-view').classList.add('hidden');
+        document.getElementById('payment-loader-view').classList.remove('hidden');
         
+        // Simulate waiting for user to approve on phone
         setTimeout(() => {
-            if(isWaitingForPayment) {
-                Toastify({text: "Redirecting to Payment App...", gravity: "bottom"}).showToast();
-            }
-        }, 500);
+            processOrder('UPI');
+        }, 3000);
     };
 
     window.processOrder = (method) => {
@@ -916,7 +995,6 @@
         const grandTotal = document.getElementById('summary-grand').innerText;
         const itemsSummary = cart.map(i => `${i.qty}x ${i.name}`).join(', ');
         
-        // --- ADDED DATE AND TIME LOGIC FOR RECEIPT ---
         const now = new Date();
         const dateNow = now.toLocaleDateString();
         const timeNow = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -956,7 +1034,6 @@
 
         document.getElementById('txn-id').innerText = orderID;
         document.getElementById('final-amt').innerText = grandTotal;
-        // Displaying Date | Time in the receipt modal
         document.getElementById('receipt-time').innerText = `${dateNow} | ${timeNow}`;
         document.getElementById('receipt-type').innerText = orderType;
 
@@ -967,7 +1044,6 @@
         
         cart = [];
         localStorage.setItem('wowCart', JSON.stringify([]));
-        // Reset to All category after order
         filterByExplore('All');
     };
 
@@ -977,6 +1053,7 @@
 
         if(!isViewingHistory) {
             document.getElementById('cooking-note').value = "";
+            document.getElementById('manual-upi-id').value = ""; // Reset UPI input
             selectedOffer = null;
             donationAmount = 0;
             document.getElementById('donate-check').checked = false;
@@ -987,11 +1064,10 @@
         isViewingHistory = false; 
     };
 
-    // Filter Logic for search box
     window.filterMenu = (val) => {
         const filtered = menuData.filter(i => i.name.toLowerCase().includes(val.toLowerCase()));
         renderMenu(filtered);
     };
 </script>
 </body>
-</html>
+                        </html>
